@@ -327,6 +327,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    loadSearch(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (route !== 'search') {
       return;
     }
