@@ -22,7 +22,7 @@ export default function HomePage() {
     <div className="safeArea">
       <div className="page">
         <div className="hero">
-          <span className="kicker">learnning</span>
+          <span className="kicker">learning</span>
           <h1 className="title">Quiz library</h1>
           <p className="subtitle">
             Find a quiz and begin a practice round when you are ready.

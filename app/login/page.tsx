@@ -9,7 +9,7 @@ export default function LoginPage() {
     <div className="safeArea">
       <div className="page">
         <div className="hero">
-          <span className="kicker">learnning</span>
+          <span className="kicker">learning</span>
           <h1 className="title">Admin access</h1>
           <p className="subtitle">
             Sign in with Google to open the private editor and keep the public learning experience quiet and uncluttered.

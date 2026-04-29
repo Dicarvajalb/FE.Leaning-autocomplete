@@ -18,7 +18,7 @@ export default function SessionPage() {
     <div className="safeArea">
       <div className="page">
         <div className="hero">
-          <span className="kicker">learnning</span>
+          <span className="kicker">learning</span>
           <h1 className="title">Study session</h1>
           <p className="subtitle">
             No timer and one question at a time.

@@ -50,7 +50,7 @@ export default function AdminPage() {
       <div className="safeArea">
         <div className="page">
           <div className="hero">
-            <span className="kicker">learnning Admin</span>
+            <span className="kicker">learning Admin</span>
             <h1 className="title">Checking access</h1>
             <p className="subtitle">
               Verifying your session before opening the calm editor.
@@ -65,7 +65,7 @@ export default function AdminPage() {
     <div className="safeArea">
       <div className="page">
         <div className="hero">
-          <span className="kicker">learnning Admin</span>
+          <span className="kicker">learning Admin</span>
           <h1 className="title">Quiet editor</h1>
           <p className="subtitle">
             Manage published quizzes and their questions with a restrained, readable workspace.

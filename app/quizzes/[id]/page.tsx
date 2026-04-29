@@ -32,7 +32,7 @@ export default function QuizPreviewPage() {
     <div className="safeArea">
       <div className="page">
         <div className="hero">
-          <span className="kicker">learnning</span>
+          <span className="kicker">learning</span>
           <h1 className="title">Quiz preview</h1>
           <p className="subtitle">
             Review the details and start your practice session.
