@@ -54,7 +54,7 @@ export default function HomePage() {
       <div className="page">
         <div className="hero">
           <span className="kicker">learnning</span>
-          <h1 className="title">Study library</h1>
+          <h1 className="title">Quiz library</h1>
           <p className="subtitle">
             Find a quiz, preview it, and begin a practice round when you are ready.
           </p>
