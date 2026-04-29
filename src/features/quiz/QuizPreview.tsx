@@ -9,6 +9,19 @@ export function QuizPreview({
   quiz: QuizDetail;
   onStartSolo?: () => void;
 }) {
+  const [copied, setCopied] = React.useState(false);
+
+  async function handleShare() {
+    try {
+      const url = `${window.location.origin}/quizzes/${quiz.id}`;
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.alert('Failed to copy the link.');
+    }
+  }
+
   return (
     <Section title="Quiz preview" subtitle="A quick look before you begin the practice round.">
       <div className="quizHeaderBox">
@@ -22,6 +35,11 @@ export function QuizPreview({
         {onStartSolo ? (
           <ActionButton label="Begin practice" onPress={onStartSolo} />
         ) : null}
+        <ActionButton
+          label={copied ? 'Link copied!' : 'Share quiz'}
+          onPress={() => void handleShare()}
+          variant="secondary"
+        />
       </div>
     </Section>
   );

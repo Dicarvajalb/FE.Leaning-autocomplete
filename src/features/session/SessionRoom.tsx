@@ -159,7 +159,7 @@ export function SessionRoom({
           <div className="cardHeaderCopy">
             <h3 className="cardTitle">Session result</h3>
             <p className="cardSubtitle">
-              A reflective recap of your practice session.
+              A recap of your practice session.
             </p>
           </div>
         </div>
@@ -167,10 +167,8 @@ export function SessionRoom({
         <div className="resultSummaryGrid">
           {result.participants.map((item) => (
             <div key={item.participantId} className="resultSummaryCard">
-              <span className="resultSummaryScore">{item.totalScore}</span>
-              <p className="resultSummaryMeta">
-                {item.correctAnswers}/{item.answeredQuestions} correct
-              </p>
+              <span className="resultSummaryScore">{item.correctAnswers}/{item.answeredQuestions} correct</span>
+              
             </div>
           ))}
         </div>

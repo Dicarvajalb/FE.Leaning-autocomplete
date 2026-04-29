@@ -36,7 +36,7 @@ export function QuizSearchResults({
             Page {page} of {totalPages}
           </p>
           <p className="pagerSub">
-            {totalResults} study set{totalResults === 1 ? '' : 's'} total
+            {totalResults} study quiz{totalResults === 1 ? '' : 'zes'} total
           </p>
         </div>
         <ActionButton
@@ -47,7 +47,7 @@ export function QuizSearchResults({
       </div>
 
       {searchError ? <span className="error">{searchError}</span> : null}
-      {searchLoading ? <span className="meta">Loading study sets...</span> : null}
+      {searchLoading ? <span className="meta">Loading study quizzes...</span> : null}
 
       <div className="list">
         {searchResults.map((quiz) => (
