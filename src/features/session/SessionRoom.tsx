@@ -248,7 +248,7 @@ export function SessionRoom({
       <div className="cardHeader">
         <div className="cardHeaderCopy">
           <h3 className="cardTitle">Live session</h3>
-          <p className="cardSubtitle">A quiet space for study and recall.</p>
+          <p className="cardSubtitle">Read the description and complete the phrase</p>
         </div>
       </div>
 
@@ -266,7 +266,7 @@ export function SessionRoom({
       ) : null}
 
       <div className="questionBox">
-        <h4 className="questionTitle">Current prompt</h4>
+        <h4 className="questionTitle">Description</h4>
         <p className="questionText">
           {question
             ? `${currentQuestionIndex + 1}. ${question.description}`

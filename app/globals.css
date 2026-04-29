@@ -479,7 +479,7 @@ textarea:focus-visible {
 
 .questionText {
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1.65;
   font-weight: 650;
   margin: 0;
