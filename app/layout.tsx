@@ -3,7 +3,7 @@ import { AppStoreProvider } from '../src/store/appStore';
 import './globals.css';
 
 export const metadata = {
-  title: 'learning',
+  title: 'Quiz library',
   description: 'A quiz study app for focused practice and memorization',
 };
 
