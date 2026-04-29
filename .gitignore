@@ -5,3 +5,4 @@ dist
 web-build
 .DS_Store
 .env.*
+.next

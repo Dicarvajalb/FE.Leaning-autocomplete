@@ -1,11 +1,4 @@
 import React from 'react';
-import {
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { styles } from '../theme/styles';
 
 export function Input({
   label,
@@ -24,20 +17,34 @@ export function Input({
   onSubmitEditing?: () => void;
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send';
 }) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && onSubmitEditing && !multiline) {
+      onSubmitEditing();
+    }
+  };
+
   return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#a4978e"
-        multiline={multiline}
-        onSubmitEditing={onSubmitEditing}
-        returnKeyType={returnKeyType}
-        style={[styles.input, multiline && styles.textArea]}
-      />
-    </View>
+    <div className="field">
+      <span className="label">{label}</span>
+      {multiline ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChangeText(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={handleKeyDown}
+          className="input textArea"
+        />
+      ) : (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChangeText(e.target.value)}
+          placeholder={placeholder}
+          onKeyDown={handleKeyDown}
+          className="input"
+        />
+      )}
+    </div>
   );
 }
 
@@ -45,33 +52,31 @@ export function ActionButton({
   label,
   onPress,
   variant = 'primary',
+  disabled,
 }: {
   label: string;
-  onPress: () => void;
+  onPress: (e?: React.MouseEvent) => void;
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  disabled?: boolean;
 }) {
+  const variantClass = {
+    primary: '',
+    secondary: 'buttonSecondary',
+    danger: 'buttonDanger',
+    ghost: 'buttonGhost',
+  }[variant];
+
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.button,
-        variant === 'secondary' && styles.buttonSecondary,
-        variant === 'danger' && styles.buttonDanger,
-        variant === 'ghost' && styles.buttonGhost,
-        pressed && styles.buttonPressed,
-      ]}
+    <button
+      type="button"
+      onClick={onPress}
+      disabled={disabled}
+      data-variant={variant}
+      className={`button ${variantClass}`}
+      style={{ opacity: disabled ? 0.5 : 1 }}
     >
-      <Text
-        style={[
-          styles.buttonText,
-          variant === 'secondary' && styles.buttonTextDark,
-          variant === 'danger' && styles.buttonTextLight,
-          variant === 'ghost' && styles.buttonTextDark,
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
+      {label}
+    </button>
   );
 }
 
@@ -87,15 +92,15 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardHeaderCopy}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          {subtitle ? <Text style={styles.cardSubtitle}>{subtitle}</Text> : null}
-        </View>
+    <div className="card">
+      <div className="cardHeader">
+        <div className="cardHeaderCopy">
+          <h2 className="cardTitle">{title}</h2>
+          {subtitle ? <p className="cardSubtitle">{subtitle}</p> : null}
+        </div>
         {action}
-      </View>
+      </div>
       {children}
-    </View>
+    </div>
   );
 }

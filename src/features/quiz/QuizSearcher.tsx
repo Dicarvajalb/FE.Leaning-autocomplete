@@ -66,7 +66,7 @@ export function QuizSearcher({
         />
       </Section>
 
-      <Section title="Search results" subtitle="Tap a quiz to load its preview.">
+      <Section title="Search results" subtitle="Choose one quiz and keep the rest out of the way.">
         <QuizSearchResults
           searchLoading={searchLoading}
           searchError={searchError}

@@ -1,8 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
 import { ActionButton } from '../../components/ui';
 import type { QuizSessionDetail, QuizSessionResult } from '../../types';
-import { styles } from '../../theme/styles';
 
 function hashString(value: string) {
   let hash = 2166136261;
@@ -50,9 +48,7 @@ export function SessionRoom({
   onToggleWord,
   onSubmit,
   submitting,
-  socketConnected,
   sessionError,
-  opponentAlert,
   responseFeedback,
   feed,
 }: {
@@ -67,35 +63,33 @@ export function SessionRoom({
   onToggleWord: (word: string) => void;
   onSubmit: () => void;
   submitting: boolean;
-  socketConnected: boolean;
   sessionError: string | null;
-  opponentAlert: string | null;
   responseFeedback: { kind: 'positive' | 'negative'; label: string } | null;
   feed: { id: string; label: string }[];
 }) {
   if (loading && !session && !result) {
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderCopy}>
-            <Text style={styles.cardTitle}>Loading session</Text>
-            <Text style={styles.cardSubtitle}>
-              Fetching the current quiz, participants, and question state.
-            </Text>
-          </View>
-        </View>
-      </View>
+      <div className="card">
+        <div className="cardHeader">
+          <div className="cardHeaderCopy">
+            <h3 className="cardTitle">Loading session</h3>
+            <p className="cardSubtitle">
+              Fetching your current quiz and study state.
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (!session && !result) {
     return (
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>No session loaded</Text>
-        <Text style={styles.cardSubtitle}>
-          Start a session from a quiz preview or join one with a code.
-        </Text>
-      </View>
+      <div className="card">
+        <h3 className="cardTitle">No session loaded</h3>
+        <p className="cardSubtitle">
+          Start from a quiz preview to begin a quiet practice round.
+        </p>
+      </div>
     );
   }
 
@@ -125,9 +119,9 @@ export function SessionRoom({
         phraseSegments.forEach((segment) => {
           if (segment.kind === 'word') {
             nodes.push(
-              <Text key={segment.id} style={styles.phraseWord}>
+              <span key={segment.id} className="phraseWord">
                 {segment.word}
-              </Text>,
+              </span>,
             );
             return;
           }
@@ -137,11 +131,11 @@ export function SessionRoom({
 
           nodes.push(
             selectedWord ? (
-              <Text key={segment.id} style={styles.phraseWord}>
+              <span key={segment.id} className="phraseWord">
                 {selectedWord}
-              </Text>
+              </span>
             ) : (
-              <View key={segment.id} style={styles.phraseBlank} />
+              <div key={segment.id} className="phraseBlank" />
             ),
           );
         });
@@ -160,211 +154,187 @@ export function SessionRoom({
 
   if (result) {
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderCopy}>
-            <Text style={styles.cardTitle}>Session result</Text>
-            <Text style={styles.cardSubtitle}>
-              Final score and per-answer feedback for the completed session.
-            </Text>
-          </View>
-        </View>
+      <div className="card">
+        <div className="cardHeader">
+          <div className="cardHeaderCopy">
+            <h3 className="cardTitle">Session result</h3>
+            <p className="cardSubtitle">
+              A reflective recap of your practice session.
+            </p>
+          </div>
+        </div>
 
-        <View style={styles.resultSummaryGrid}>
+        <div className="resultSummaryGrid">
           {result.participants.map((item) => (
-            <View key={item.participantId} style={styles.resultSummaryCard}>
-              <Text style={styles.resultSummarySeat}>{item.seat}</Text>
-              <Text style={styles.resultSummaryScore}>{item.totalScore}</Text>
-              <Text style={styles.resultSummaryMeta}>
+            <div key={item.participantId} className="resultSummaryCard">
+              <span className="resultSummaryScore">{item.totalScore}</span>
+              <p className="resultSummaryMeta">
                 {item.correctAnswers}/{item.answeredQuestions} correct
-              </Text>
-              <Text style={styles.resultSummaryMeta}>
-                {item.fastestAnswers} fastest
-              </Text>
-            </View>
+              </p>
+            </div>
           ))}
-        </View>
+        </div>
 
-        <View style={styles.feedbackSection}>
-          <Text style={styles.optionsTitle}>Feedback</Text>
-          <Text style={styles.cardSubtitle}>
-            Review each question, the correct phrase, and every submitted answer one by one.
-          </Text>
+        <div className="feedbackSection">
+          <h3 className="optionsTitle">Review</h3>
+          <p className="cardSubtitle">
+            Review each question, the correct phrase, and every submitted answer
+          </p>
 
-          <View style={styles.list}>
+          <div className="list">
             {result.questions.map((item) => {
               const questionCopy =
                 result.session.quiz.questions[item.questionIndex]?.description ??
                 `Question ${item.questionIndex + 1}`;
 
               return (
-                <View key={item.questionId} style={styles.feedbackCard}>
-                  <View style={styles.feedbackCardHeader}>
-                    <View style={styles.cardHeaderCopy}>
-                      <Text style={styles.listItemTitle}>
+                <div key={item.questionId} className="feedbackCard">
+                  <div className="feedbackCardHeader">
+                    <div className="cardHeaderCopy">
+                      <h4 className="listItemTitle">
                         Question {item.questionIndex + 1}
-                      </Text>
-                      <Text style={styles.listItemDescription}>{questionCopy}</Text>
-                    </View>
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>
-                        {item.firstResponderParticipantId ? 'Answered' : 'No answer'}
-                      </Text>
-                    </View>
-                  </View>
+                      </h4>
+                      <p className="listItemDescription">{questionCopy}</p>
+                    </div>
+                    <div className="badge">
+                      <span>{item.answers.length > 0 ? 'Answered' : 'No answer'}</span>
+                    </div>
+                  </div>
 
-                  <View style={styles.feedbackAnswerGroup}>
-                    <Text style={styles.feedbackLabel}>Correct answer</Text>
-                    <Text style={styles.feedbackAnswerText}>
+                  <div className="feedbackAnswerGroup">
+                    <span className="feedbackLabel">Correct answer</span>
+                    <span className="feedbackAnswerText">
                       {item.canonicalOrder.join(' · ')}
-                    </Text>
-                  </View>
+                    </span>
+                  </div>
 
-                  <View style={styles.feedbackAnswerList}>
+                  <div className="feedbackAnswerList">
                     {item.answers.map((answer) => (
-                      <View
+                      <div
                         key={answer.answerId}
-                        style={[
-                          styles.feedbackAnswerRow,
+                        className={`feedbackAnswerRow ${
                           answer.isCorrect
-                            ? styles.feedbackAnswerRowPositive
-                            : styles.feedbackAnswerRowNegative,
-                        ]}
+                            ? 'feedbackAnswerRowPositive'
+                            : 'feedbackAnswerRowNegative'
+                        }`}
                       >
-                        <View style={styles.feedbackAnswerRowHeader}>
-                          <Text style={styles.feedbackAnswerSeat}>{answer.seat}</Text>
-                          <Text
-                            style={[
-                              styles.feedbackAnswerState,
+                        <div className="feedbackAnswerRowHeader">
+                          <span className="feedbackAnswerSeat">{answer.seat}</span>
+                          <span
+                            className={`feedbackAnswerState ${
                               answer.isCorrect
-                                ? styles.feedbackAnswerStatePositive
-                                : styles.feedbackAnswerStateNegative,
-                            ]}
+                                ? 'feedbackAnswerStatePositive'
+                                : 'feedbackAnswerStateNegative'
+                            }`}
                           >
                             {answer.isCorrect ? 'Correct' : 'Wrong'}
-                          </Text>
-                        </View>
-                        <Text style={styles.feedbackAnswerText}>
+                          </span>
+                        </div>
+                        <span className="feedbackAnswerText">
                           {answer.selectedOrder.join(' · ') || 'No answer'}
-                        </Text>
-                      </View>
+                        </span>
+                      </div>
                     ))}
-                  </View>
-                </View>
+                  </div>
+                </div>
               );
             })}
-          </View>
-        </View>
-      </View>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardHeaderCopy}>
-          <Text style={styles.cardTitle}>Live session</Text>
-          <Text style={styles.cardSubtitle}>
-            {socketConnected ? 'Connected' : 'Connecting...'}
-          </Text>
-        </View>
-      </View>
+    <div className="card">
+      <div className="cardHeader">
+        <div className="cardHeaderCopy">
+          <h3 className="cardTitle">Live session</h3>
+          <p className="cardSubtitle">A quiet space for study and recall.</p>
+        </div>
+      </div>
 
-      {sessionError ? <Text style={styles.error}>{sessionError}</Text> : null}
-      {opponentAlert ? <Text style={styles.liveNotice}>{opponentAlert}</Text> : null}
+      {sessionError ? <span className="error">{sessionError}</span> : null}
       {responseFeedback ? (
-        <Text
-          style={[
-            styles.responseFeedback,
+        <span
+          className={`responseFeedback ${
             responseFeedback.kind === 'positive'
-              ? styles.responseFeedbackPositive
-              : styles.responseFeedbackNegative,
-          ]}
+              ? 'responseFeedbackPositive'
+              : 'responseFeedbackNegative'
+          }`}
         >
           {responseFeedback.label}
-        </Text>
+        </span>
       ) : null}
 
-      <View style={styles.questionBox}>
-        <Text style={styles.questionTitle}>Question</Text>
-        <Text style={styles.questionText}>
+      <div className="questionBox">
+        <h4 className="questionTitle">Current prompt</h4>
+        <p className="questionText">
           {question
             ? `${currentQuestionIndex + 1}. ${question.description}`
-            : 'No active question'}
-        </Text>
-      </View>
+            : 'No active prompt'}
+        </p>
+      </div>
 
       {question ? (
         <>
-          <View style={styles.phraseBox}>
-            <Text style={styles.phraseTitle}>Complete the phrase</Text>
-            <View style={styles.phraseRow}>
+          <div className="phraseBox">
+            <h4 className="phraseTitle">Complete the phrase</h4>
+            <div className="phraseRow">
               {phraseNodes}
-            </View>
-          </View>
+            </div>
+          </div>
 
-          <View style={styles.bankBox}>
-            <View style={styles.bankHeader}>
-              <View style={styles.cardHeaderCopy}>
-                <Text style={styles.bankTitle}>Word list</Text>
-                <Text style={styles.bankSubtitle}>
-                  Tap the words in the correct order. Once all blanks are filled, the remaining words lock.
-                </Text>
-              </View>
-            </View>
+          <div className="bankBox">
+            <div className="bankHeader">
+              <div className="cardHeaderCopy">
+                <h4 className="bankTitle">Word bank</h4>
+                <p className="bankSubtitle">
+                  Choose the words in the right order. When the blanks are filled, the rest settles quietly.
+                </p>
+              </div>
+            </div>
 
-            <View style={styles.bankGrid}>
+            <div className="bankGrid">
               {wordBank.map((option) => {
                 const isSelected = selectedOrder.includes(option.word);
                 const isLocked = !isSelected && selectedOrder.length >= maxSelectableWords;
                 return (
-                  <Pressable
+                  <button
+                    type="button"
                     key={`${question.id}-${option.label}-${option.word}`}
-                    onPress={() => onToggleWord(option.word)}
+                    onClick={() => onToggleWord(option.word)}
                     disabled={isLocked}
-                    style={({ pressed }) => [
-                      styles.bankItem,
-                      isSelected && styles.bankItemSelected,
-                      isLocked && styles.bankItemLocked,
-                      pressed && !isLocked && styles.listItemPressed,
-                    ]}
+                    className={`bankItem ${isSelected ? 'bankItemSelected' : ''} ${isLocked ? 'bankItemLocked' : ''}`}
                   >
-                    <Text
-                      style={[
-                        styles.bankItemText,
-                        isSelected && styles.bankItemTextSelected,
-                        isLocked && styles.bankItemTextLocked,
-                      ]}
-                    >
-                      {option.word}
-                    </Text>
-                  </Pressable>
+                    {option.word}
+                  </button>
                 );
               })}
-            </View>
-          </View>
+            </div>
+          </div>
 
-          <View style={styles.sessionActions}>
+          <div className="sessionActions">
             <ActionButton
-              label={submitting ? 'Submitting...' : 'Submit answer'}
+              label={submitting ? 'Checking...' : 'Check answer'}
               onPress={onSubmit}
             />
-          </View>
+          </div>
         </>
       ) : null}
 
-      <View style={styles.feedBox}>
-        <Text style={styles.detailLabel}>Live Feed</Text>
+      <div className="feedBox">
+        <h4 className="detailLabel">Previous answers</h4>
         {feed.length === 0 ? (
-          <Text style={styles.detailValue}>Waiting for answers...</Text>
+          <p className="detailValue">Waiting for your first response...</p>
         ) : (
           feed.map((item) => (
-            <Text key={item.id} style={styles.feedItem}>
+            <p key={item.id} className="feedItem">
               {item.label}
-            </Text>
+            </p>
           ))
         )}
-      </View>
-    </View>
+      </div>
+    </div>
   );
 }

@@ -1,39 +1,28 @@
 import React from 'react';
-import { Text, View } from 'react-native';
 import type { QuizDetail } from '../../types';
 import { ActionButton, Section } from '../../components/ui';
-import { styles } from '../../theme/styles';
 
 export function QuizPreview({
   quiz,
   onStartSolo,
-  onStartTwoPlayer,
 }: {
   quiz: QuizDetail;
   onStartSolo?: () => void;
-  onStartTwoPlayer?: () => void;
 }) {
   return (
-    <Section title="Quiz preview" subtitle="Selected quiz ready to play.">
-      <View style={styles.quizHeaderBox}>
-        <Text style={styles.quizHeaderTitle}>{quiz.title}</Text>
-        <Text style={styles.quizHeaderSub}>
-          {quiz.questions.length} question{quiz.questions.length === 1 ? '' : 's'}
-        </Text>
-      </View>
+    <Section title="Quiz preview" subtitle="A quick look before you begin the practice round.">
+      <div className="quizHeaderBox">
+        <h3 className="quizHeaderTitle">{quiz.title}</h3>
+        <p className="quizHeaderSub">
+          {quiz.questions.length} question{quiz.questions.length === 1 ? '' : 's'} to study
+        </p>
+      </div>
 
-      <View style={styles.heroButtons}>
+      <div className="heroButtons">
         {onStartSolo ? (
-          <ActionButton label="Play solo" onPress={onStartSolo} />
+          <ActionButton label="Begin practice" onPress={onStartSolo} />
         ) : null}
-        {onStartTwoPlayer ? (
-          <ActionButton
-            label="Play two-player"
-            onPress={onStartTwoPlayer}
-            variant="secondary"
-          />
-        ) : null}
-      </View>
+      </div>
     </Section>
   );
 }

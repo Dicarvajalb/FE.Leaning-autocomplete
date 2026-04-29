@@ -1,11 +1,9 @@
-import { Alert } from 'react-native';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   getQuizSession,
   getQuizSessionResult,
   submitQuizSessionAnswer,
 } from '../services/quizApi';
-import { connectQuizSessionSocket } from '../services/sessionSocket';
 import type {
   QuizSessionDetail,
   QuizSessionQuestionComparison,
@@ -28,24 +26,17 @@ function makeFeedId(prefix: string) {
 
 export function useQuizSessionController(args: {
   sessionId: string | null;
-  participantId: string | null;
 }) {
-  const { sessionId, participantId } = args;
+  const { sessionId } = args;
   const [session, setSession] = useState<QuizSessionDetail | null>(null);
   const [result, setResult] = useState<QuizSessionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
   const [feed, setFeed] = useState<SessionFeedItem[]>([]);
-  const [socketConnected, setSocketConnected] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
-  const [opponentAlert, setOpponentAlert] = useState<string | null>(null);
   const [responseFeedback, setResponseFeedback] =
     useState<SessionResponseFeedback | null>(null);
-  const socketRef = useRef<ReturnType<typeof connectQuizSessionSocket> | null>(
-    null,
-  );
-  const lastQuestionIdRef = useRef<string | null>(null);
 
   const currentQuestion = useMemo(() => {
     if (!session) {
@@ -55,16 +46,7 @@ export function useQuizSessionController(args: {
     return session.quiz.questions[session.currentQuestion] ?? null;
   }, [session]);
 
-  const currentParticipantId = participantId ?? session?.participants[0]?.id ?? null;
-  const currentParticipant = useMemo(() => {
-    if (!session || !currentParticipantId) {
-      return null;
-    }
-
-    return session.participants.find(
-      (item) => item.id === currentParticipantId,
-    ) ?? null;
-  }, [currentParticipantId, session]);
+  const currentParticipantId = session?.participants[0]?.id ?? null;
 
   async function refreshSession(nextSessionId: string) {
     setLoading(true);
@@ -89,7 +71,6 @@ export function useQuizSessionController(args: {
       setResult(null);
       setSelectedOrder([]);
       setFeed([]);
-      setSocketConnected(false);
       setSessionError(null);
       setResponseFeedback(null);
       return;
@@ -100,88 +81,12 @@ export function useQuizSessionController(args: {
   }, [sessionId]);
 
   useEffect(() => {
-    if (!sessionId || !currentParticipantId) {
-      return;
-    }
-
-    const socket = connectQuizSessionSocket({
-      sessionId,
-      participantId: currentParticipantId,
-    });
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      setSocketConnected(true);
-      socket.emit('quiz-session:join', {
-        sessionId,
-        participantId: currentParticipantId,
-      });
-    });
-
-    socket.on('disconnect', () => {
-      setSocketConnected(false);
-    });
-
-    socket.on('quiz-session:updated', (payload) => {
-      setSession(payload.session);
-      if (payload.session.status === 'COMPLETED') {
-        void getQuizSessionResult(payload.session.id).then(setResult).catch(
-          () => {
-            setSessionError('The session completed, but results could not be loaded.');
-          },
-        );
-      }
-    });
-
-    socket.on('quiz-session:answer-submitted', (payload) => {
-      setSession(payload.session);
-      const isCorrect = payload.submittedAnswer?.isCorrect ?? false;
-      setResponseFeedback({
-        kind: isCorrect ? 'positive' : 'negative',
-        label: `${payload.submittedAnswer?.seat ?? 'Player'}: ${isCorrect ? 'Correct answer' : 'Incorrect answer'}`,
-      });
-      const submittedWords = payload.comparison.selectedOrder.join(' · ');
-      const nextFeedLabel = `${payload.comparison.seat}: ${submittedWords || 'no response'}`;
-      setFeed((current) => [
-        {
-          id: makeFeedId('answer'),
-          label: `${payload.comparison.isFastest ? 'Fastest' : 'Answer'} ${nextFeedLabel}`,
-        },
-        ...current.slice(0, 5),
-      ]);
-
-      if (
-        payload.comparison.firstResponderParticipantId &&
-        payload.comparison.firstResponderParticipantId !== currentParticipantId
-      ) {
-        const message = 'Opponent answered first on this question.';
-        setOpponentAlert(message);
-        Alert.alert('Opponent faster', message);
-      }
-    });
-
-    socket.on('quiz-session:result', (payload) => {
-      setResult(payload.result);
-      setSession(payload.result.session);
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [currentParticipantId, sessionId]);
-
-  useEffect(() => {
     if (!currentQuestion) {
       return;
     }
 
-    if (lastQuestionIdRef.current !== currentQuestion.id) {
-      lastQuestionIdRef.current = currentQuestion.id;
-      setSelectedOrder([]);
-      setOpponentAlert(null);
-      setResponseFeedback(null);
-    }
+    setSelectedOrder([]);
+    setResponseFeedback(null);
   }, [currentQuestion]);
 
   const selectableWords = useMemo(() => {
@@ -307,12 +212,9 @@ export function useQuizSessionController(args: {
     maxSelectableWords,
     completeSelectedOrder,
     currentQuestion,
-    currentParticipant,
     currentParticipantId,
-    socketConnected,
     sessionError,
     setSessionError,
-    opponentAlert,
     responseFeedback,
     feed,
     refreshSession,

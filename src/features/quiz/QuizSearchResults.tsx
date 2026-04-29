@@ -1,8 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
 import type { QuizSearchItem } from '../../types';
 import { ActionButton } from '../../components/ui';
-import { styles } from '../../theme/styles';
 
 export function QuizSearchResults({
   searchLoading,
@@ -27,54 +25,54 @@ export function QuizSearchResults({
 }) {
   return (
     <>
-      <View style={styles.pager}>
+      <div className="pager">
         <ActionButton
           label="Prev"
           onPress={onPrev}
           variant="ghost"
         />
-        <View style={styles.pagerInfo}>
-          <Text style={styles.pagerTitle}>
+        <div className="pagerInfo">
+          <p className="pagerTitle">
             Page {page} of {totalPages}
-          </Text>
-          <Text style={styles.pagerSub}>
-            {totalResults} quiz{totalResults === 1 ? '' : 'es'} total
-          </Text>
-        </View>
+          </p>
+          <p className="pagerSub">
+            {totalResults} study set{totalResults === 1 ? '' : 's'} total
+          </p>
+        </div>
         <ActionButton
           label="Next"
           onPress={onNext}
           variant="ghost"
         />
-      </View>
+      </div>
 
-      {searchError ? <Text style={styles.error}>{searchError}</Text> : null}
-      {searchLoading ? <Text style={styles.meta}>Loading quizzes...</Text> : null}
+      {searchError ? <span className="error">{searchError}</span> : null}
+      {searchLoading ? <span className="meta">Loading study sets...</span> : null}
 
-      <View style={styles.list}>
+      <div className="list">
         {searchResults.map((quiz) => (
-          <Pressable
+          <div
             key={quiz.id}
-            onPress={() => onSelectQuiz(quiz.id)}
-            style={({ pressed }) => [styles.listItem, pressed && styles.listItemPressed]}
+            onClick={() => onSelectQuiz(quiz.id)}
+            className="listItem"
           >
-            <View style={styles.listItemHeader}>
-              <View style={styles.listItemCopy}>
-                <Text style={styles.listItemTitle}>{quiz.title}</Text>
-                <Text style={styles.listItemMeta}>
-                  {quiz.topic} · {quiz.difficulty}
-                </Text>
-              </View>
-              <Text style={styles.badge}>{quiz.questionCount} Q</Text>
-            </View>
+            <div className="listItemHeader">
+              <div className="listItemCopy">
+                <h3 className="listItemTitle">{quiz.title}</h3>
+                <p className="listItemMeta">
+                  {quiz.topic} &middot; {quiz.difficulty}
+                </p>
+              </div>
+              <span className="badge">{quiz.questionCount} Q</span>
+            </div>
             {quiz.description ? (
-              <Text style={styles.listItemDescription} numberOfLines={2}>
+              <p className="listItemDescription">
                 {quiz.description}
-              </Text>
+              </p>
             ) : null}
-          </Pressable>
+          </div>
         ))}
-      </View>
+      </div>
     </>
   );
 }

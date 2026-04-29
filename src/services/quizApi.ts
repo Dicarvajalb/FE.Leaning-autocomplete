@@ -1,10 +1,8 @@
-import { Linking, Platform } from 'react-native';
 import type {
   CreateQuestionInput,
   CreateQuizSessionInput,
   CreateQuizInput,
   CurrentUser,
-  JoinQuizSessionInput,
   QuizDetail,
   QuizSessionAnswerSubmissionResult,
   QuizSessionDetail,
@@ -13,7 +11,7 @@ import type {
   SubmitQuizSessionAnswerInput,
 } from '../types';
 
-const API_BASE_URL = 'https://be-leaning-autocomplete.vercel.app';
+const API_BASE_URL = 'http://localhost:3001';
 
 export class ApiError extends Error {
   constructor(
@@ -89,17 +87,10 @@ export function getApiBaseUrl() {
   return API_BASE_URL;
 }
 
-export function getSocketBaseUrl() {
-  return API_BASE_URL;
-}
-
 export function openAdminLogin() {
   if (typeof window !== 'undefined') {
     window.location.href = `${API_BASE_URL}/auth/google`;
-    return;
   }
-
-  void Linking.openURL(`${API_BASE_URL}/auth/google`);
 }
 
 export function getCurrentUser() {
@@ -180,13 +171,6 @@ export function createQuizSession(
   input: CreateQuizSessionInput,
 ) {
   return requestJson<QuizSessionDetail>(`/quizzes/${quizId}/sessions`, {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
-}
-
-export function joinQuizSession(joinCode: string, input: JoinQuizSessionInput) {
-  return requestJson<QuizSessionDetail>(`/quiz-sessions/${joinCode}/join`, {
     method: 'POST',
     body: JSON.stringify(input),
   });

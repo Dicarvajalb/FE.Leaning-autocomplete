@@ -2,9 +2,9 @@ export type QuizDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
 export type QuestionType = 'AUTOCOMPLETE_ORDER';
 export type UserRole = 'ADMIN' | 'USER';
 export type QuestionOptionLabel = 'HIDE' | 'SHOW' | 'EXTRA';
-export type QuizSessionMode = 'SOLO' | 'TWO_PLAYER';
+export type QuizSessionMode = 'SOLO';
 export type QuizSessionStatus = 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
-export type SessionParticipantSeat = 'SOLO' | 'PLAYER_ONE' | 'PLAYER_TWO';
+export type SessionParticipantSeat = 'SOLO';
 
 export interface QuizOption {
   word: string;
@@ -63,11 +63,6 @@ export interface CreateQuestionInput {
 }
 
 export interface CreateQuizSessionInput {
-  mode: QuizSessionMode;
-  participantUserId?: string | null;
-}
-
-export interface JoinQuizSessionInput {
   participantUserId?: string | null;
 }
 
@@ -91,8 +86,6 @@ export interface QuizSessionDetail {
   quizId: string;
   mode: QuizSessionMode;
   status: QuizSessionStatus;
-  joinCode: string | null;
-  shareLink: string | null;
   currentQuestion: number;
   startedAt: string | null;
   completedAt: string | null;

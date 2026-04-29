@@ -1,3 +1,5 @@
+"use client";
+
 import React, {
   createContext,
   useContext,
@@ -5,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Alert } from 'react-native';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   createQuestion,
   createQuiz,
@@ -20,7 +22,6 @@ import {
 } from '../services/quizApi';
 import type {
   QuizDetail,
-  QuizQuestion,
   QuizSearchItem,
 } from '../types';
 import {
@@ -33,13 +34,15 @@ import {
   type QuestionFormState,
   type QuizFormState,
 } from '../features/quiz/quizViewModels';
-import { type AppRoute, useAppRoute } from '../hooks/useAppRoute';
+import {
+  readQuizImportFile,
+  type ParsedQuizImport,
+} from '../features/quiz/quizImport';
 
 type AdminAccessState = 'checking' | 'authenticated' | 'unauthenticated';
 
 type AppStoreValue = {
-  route: AppRoute;
-  syncRoute: (nextRoute: AppRoute, replace?: boolean) => void;
+  syncRoute: (nextRoute: string, replace?: boolean) => void;
   syncPath: (targetPath: string, replace?: boolean) => void;
   adminAccessState: AdminAccessState;
   searchQuery: string;
@@ -62,6 +65,7 @@ type AppStoreValue = {
   statusMessage: string;
   savingQuiz: boolean;
   savingQuestion: boolean;
+  importingQuizzes: boolean;
   totalPages: number;
   handleLogout: () => Promise<void>;
   loadSearch: (nextPage?: number) => Promise<void>;
@@ -70,6 +74,7 @@ type AppStoreValue = {
   removeQuiz: () => Promise<void>;
   saveQuestion: () => Promise<void>;
   removeQuestion: (questionId: string) => Promise<void>;
+  importQuizzesFromFile: (file: File) => Promise<void>;
   beginNewQuiz: () => void;
   refreshSelectedQuiz: (quizId: string) => Promise<QuizDetail>;
 };
@@ -77,7 +82,8 @@ type AppStoreValue = {
 const AppStoreContext = createContext<AppStoreValue | null>(null);
 
 export function AppStoreProvider({ children }: { children: React.ReactNode }) {
-  const { route, syncRoute, syncPath } = useAppRoute();
+  const router = useRouter();
+  const pathname = usePathname();
   const [adminAccessState, setAdminAccessState] =
     useState<AdminAccessState>('checking');
 
@@ -103,11 +109,34 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [savingQuiz, setSavingQuiz] = useState(false);
   const [savingQuestion, setSavingQuestion] = useState(false);
+  const [importingQuizzes, setImportingQuizzes] = useState(false);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalResults / limit)),
     [totalResults],
   );
+
+  const syncPath = (targetPath: string, replace = false) => {
+    if (replace) {
+      router.replace(targetPath);
+    } else {
+      router.push(targetPath);
+    }
+  };
+
+  const syncRoute = (nextRoute: string, replace = false) => {
+    const targetPath =
+      nextRoute === 'admin'
+        ? '/admin'
+        : nextRoute === 'login'
+          ? '/login'
+          : nextRoute === 'search'
+            ? '/'
+            : nextRoute === 'session'
+              ? '/sessions'
+              : '/';
+    syncPath(targetPath, replace);
+  };
 
   function resetAdminState() {
     setSearchQuery('');
@@ -175,7 +204,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         'The public quiz list is still available. Select another quiz or try again.',
       );
       setStatusMessage(message);
-      Alert.alert('Load failed', message);
+      window.alert(message);
     }
   }
 
@@ -189,7 +218,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   async function saveQuiz() {
     const payload = normalizeQuizForm(quizForm);
     if (!payload.title || !payload.topic) {
-      Alert.alert('Missing data', 'Title and topic are required.');
+      window.alert('Title and topic are required.');
       return;
     }
 
@@ -211,7 +240,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         'Your form data stays in the editor, so you can retry after checking the connection or the required fields.',
       );
       setStatusMessage(message);
-      Alert.alert('Save failed', message);
+      window.alert(message);
     } finally {
       setSavingQuiz(false);
     }
@@ -222,43 +251,36 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    Alert.alert('Delete quiz', 'This action cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteQuiz(selectedQuizId);
-            setSelectedQuizId(null);
-            setSelectedQuiz(null);
-            setQuizForm(emptyQuizForm());
-            setSelectedQuestionId(null);
-            setQuestionForm(emptyQuestionForm());
-            setStatusMessage('Quiz deleted successfully.');
-            await loadSearch();
-          } catch {
-            const message = errorWithFallback(
-              'Unable to delete quiz',
-              'The quiz remains unchanged in the backend. You can retry the delete action once the connection is stable.',
-            );
-            setStatusMessage(message);
-            Alert.alert('Delete failed', message);
-          }
-        },
-      },
-    ]);
+    if (window.confirm('Delete quiz. This action cannot be undone.')) {
+      try {
+        await deleteQuiz(selectedQuizId);
+        setSelectedQuizId(null);
+        setSelectedQuiz(null);
+        setQuizForm(emptyQuizForm());
+        setSelectedQuestionId(null);
+        setQuestionForm(emptyQuestionForm());
+        setStatusMessage('Quiz deleted successfully.');
+        await loadSearch();
+      } catch {
+        const message = errorWithFallback(
+          'Unable to delete quiz',
+          'The quiz remains unchanged in the backend. You can retry the delete action once the connection is stable.',
+        );
+        setStatusMessage(message);
+        window.alert(message);
+      }
+    }
   }
 
   async function saveQuestion() {
     if (!selectedQuizId) {
-      Alert.alert('Select a quiz', 'Load or create a quiz before editing questions.');
+      window.alert('Load or create a quiz before editing questions.');
       return;
     }
 
     const payload = normalizeQuestionForm(questionForm);
     if (!payload.description || payload.options.length === 0) {
-      Alert.alert('Missing data', 'Description and options are required.');
+      window.alert('Description and options are required.');
       return;
     }
 
@@ -288,9 +310,88 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         'Your question edits stay in the form, so nothing is lost. You can retry after fixing the connection or the option list.',
       );
       setStatusMessage(message);
-      Alert.alert('Save failed', message);
+      window.alert(message);
     } finally {
       setSavingQuestion(false);
+    }
+  }
+
+  async function importQuizzesFromPayload(payload: ParsedQuizImport) {
+    if (payload.quizzes.length === 0) {
+      throw new Error('Import file does not contain any quizzes');
+    }
+
+    setImportingQuizzes(true);
+    const createdQuizIds: string[] = [];
+    try {
+      let createdQuizCount = 0;
+      let createdQuestionCount = 0;
+      let lastImportedQuizId: string | null = null;
+
+      for (const quizInput of payload.quizzes) {
+        const createdQuiz = await createQuiz({
+          title: quizInput.title,
+          topic: quizInput.topic,
+          difficulty: quizInput.difficulty,
+          description: quizInput.description,
+        });
+
+        createdQuizIds.push(createdQuiz.id);
+        createdQuizCount += 1;
+        lastImportedQuizId = createdQuiz.id;
+
+        for (const question of quizInput.questions ?? []) {
+          await createQuestion(createdQuiz.id, question);
+          createdQuestionCount += 1;
+        }
+      }
+
+      await loadSearch();
+
+      if (lastImportedQuizId) {
+        await loadQuiz(lastImportedQuizId);
+      }
+
+      const quizLabel = createdQuizCount === 1 ? 'quiz' : 'quizzes';
+      const questionLabel =
+        createdQuestionCount === 1 ? 'question' : 'questions';
+      const message = `Imported ${createdQuizCount} ${quizLabel}${createdQuestionCount > 0 ? ` and ${createdQuestionCount} ${questionLabel}` : ''}.`;
+      setStatusMessage(message);
+      window.alert(message);
+    } catch (error) {
+      for (const quizId of createdQuizIds.reverse()) {
+        try {
+          await deleteQuiz(quizId);
+        } catch {
+          // Best effort rollback only.
+        }
+      }
+
+      throw error;
+    } finally {
+      setImportingQuizzes(false);
+    }
+  }
+
+  async function importQuizzesFromFile(file: File) {
+    if (!file) {
+      return;
+    }
+
+    try {
+      const payload = await readQuizImportFile(file);
+      await importQuizzesFromPayload(payload);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'The JSON file could not be imported.';
+      const friendlyMessage = errorWithFallback(
+        'Unable to import quizzes',
+        message,
+      );
+      setStatusMessage(friendlyMessage);
+      window.alert(friendlyMessage);
     }
   }
 
@@ -313,7 +414,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
         'The question is still present in the quiz. You can retry the action after reconnecting.',
       );
       setStatusMessage(message);
-      Alert.alert('Delete failed', message);
+      window.alert(message);
     }
   }
 
@@ -327,21 +428,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    loadSearch(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (route !== 'search') {
+    if (pathname !== '/') {
       return;
     }
 
     void loadSearch(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route]);
+  }, [pathname]);
 
   useEffect(() => {
-    if (route !== 'admin') {
+    if (!pathname || !pathname.startsWith('/admin')) {
       setAdminAccessState('unauthenticated');
       return;
     }
@@ -376,19 +472,19 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [route, syncRoute]);
+  }, [pathname]);
 
   useEffect(() => {
-    if (route !== 'admin' || adminAccessState !== 'authenticated') {
+    if (!pathname || !pathname.startsWith('/admin') || adminAccessState !== 'authenticated') {
       return;
     }
 
     void loadSearch(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route, adminAccessState]);
+  }, [pathname, adminAccessState]);
 
   useEffect(() => {
-    if (route !== 'login') {
+    if (!pathname || !pathname.startsWith('/login')) {
       return;
     }
 
@@ -412,11 +508,10 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [route, syncRoute]);
+  }, [pathname]);
 
   const value = useMemo<AppStoreValue>(
     () => ({
-      route,
       syncRoute,
       syncPath,
       adminAccessState,
@@ -440,6 +535,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       statusMessage,
       savingQuiz,
       savingQuestion,
+      importingQuizzes,
       totalPages,
       handleLogout,
       loadSearch,
@@ -448,22 +544,21 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       removeQuiz,
       saveQuestion,
       removeQuestion,
+      importQuizzesFromFile,
       beginNewQuiz,
       refreshSelectedQuiz,
     }),
     [
       adminAccessState,
-      beginNewQuiz,
-      handleLogout,
-      limit,
-      loadQuiz,
-      loadSearch,
-      page,
-      questionForm,
-      refreshSelectedQuiz,
+    beginNewQuiz,
+    handleLogout,
+    importQuizzesFromFile,
+    limit,
+    page,
+    questionForm,
+      importingQuizzes,
       removeQuestion,
       removeQuiz,
-      route,
       savingQuestion,
       savingQuiz,
       searchError,
@@ -471,21 +566,18 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       searchQuery,
       searchResults,
       selectedQuestionId,
-      selectedQuiz,
-      selectedQuizId,
-      setPage,
-      setQuestionForm,
-      setQuizForm,
-      setSearchQuery,
-      setSelectedQuestionId,
-      statusMessage,
-      syncRoute,
-      syncPath,
-      totalPages,
-      totalResults,
-      saveQuestion,
-      saveQuiz,
-    ],
+    selectedQuiz,
+    selectedQuizId,
+    statusMessage,
+    totalPages,
+    totalResults,
+    quizForm,
+    loadSearch,
+    loadQuiz,
+    saveQuiz,
+    saveQuestion,
+    refreshSelectedQuiz,
+  ],
   );
 
   return (
